@@ -203,8 +203,8 @@ type ResolveUndoEntry struct {
 // can take advantage of this to quickly locate the index extensions without
 // having to parse through all of the index entries.
 //
-//  Because it must be able to be loaded before the variable length cache
-//  entries and other index extensions, this extension must be written last.
+//	Because it must be able to be loaded before the variable length cache
+//	entries and other index extensions, this extension must be written last.
 type EndOfIndexEntry struct {
 	// Offset to the end of the index entries
 	Offset uint32
@@ -217,15 +217,12 @@ type EndOfIndexEntry struct {
 // to the index to prevent the files from being checked out
 func (i *Index) SkipUnless(patterns []string) {
 	for _, e := range i.Entries {
-		var include bool
+		e.SkipWorktree = true
 		for _, pattern := range patterns {
 			if strings.HasPrefix(e.Name, pattern) {
-				include = true
+				e.SkipWorktree = false
 				break
 			}
-		}
-		if !include {
-			e.SkipWorktree = true
 		}
 	}
 }
