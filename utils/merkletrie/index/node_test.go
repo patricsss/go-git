@@ -64,6 +64,43 @@ func (s *NoderSuite) TestDiffChange() {
 	s.Len(ch, 2)
 }
 
+func (s *NoderSuite) TestDiffSkipIssue1455() {
+	indexA := &index.Index{
+		Entries: []*index.Entry{
+			{
+				Name:         filepath.Join("bar", "baz", "bar"),
+				Hash:         plumbing.NewHash("8ab686eafeb1f44702738c8b0f24f2567c36da6d"),
+				SkipWorktree: true,
+			},
+			{
+				Name:         filepath.Join("bar", "biz", "bat"),
+				Hash:         plumbing.NewHash("8ab686eafeb1f44702738c8b0f24f2567c36da6d"),
+				SkipWorktree: false,
+			},
+		},
+	}
+
+	indexB := &index.Index{}
+
+	ch, err := merkletrie.DiffTree(NewRootNode(indexB), NewRootNode(indexA), isEquals)
+	s.NoError(err)
+	s.Len(ch, 2)
+	deleteCount := 0
+	insertCount := 0
+	for _, c := range ch {
+		a, err := c.Action()
+		s.NoError(err)
+		switch a {
+		case merkletrie.Delete:
+			deleteCount++
+		case merkletrie.Insert:
+			insertCount++
+		}
+	}
+	s.Equal(1, deleteCount)
+	s.Equal(1, insertCount)
+}
+
 func (s *NoderSuite) TestDiffDir() {
 	indexA := &index.Index{
 		Entries: []*index.Entry{{
