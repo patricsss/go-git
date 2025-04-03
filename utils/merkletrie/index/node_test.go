@@ -2,7 +2,7 @@ package index
 
 import (
 	"bytes"
-	"path/filepath"
+	"path"
 	"testing"
 
 	"github.com/go-git/go-git/v5/plumbing"
@@ -47,14 +47,14 @@ func (s *NoderSuite) TestDiff() {
 func (s *NoderSuite) TestDiffChange() {
 	indexA := &index.Index{
 		Entries: []*index.Entry{{
-			Name: filepath.Join("bar", "baz", "bar"),
+			Name: path.Join("bar", "baz", "bar"),
 			Hash: plumbing.NewHash("8ab686eafeb1f44702738c8b0f24f2567c36da6d"),
 		}},
 	}
 
 	indexB := &index.Index{
 		Entries: []*index.Entry{{
-			Name: filepath.Join("bar", "baz", "foo"),
+			Name: path.Join("bar", "baz", "foo"),
 			Hash: plumbing.NewHash("8ab686eafeb1f44702738c8b0f24f2567c36da6d"),
 		}},
 	}
@@ -68,12 +68,12 @@ func (s *NoderSuite) TestDiffSkipIssue1455() {
 	indexA := &index.Index{
 		Entries: []*index.Entry{
 			{
-				Name:         filepath.Join("bar", "baz", "bar"),
+				Name:         path.Join("bar", "baz", "bar"),
 				Hash:         plumbing.NewHash("8ab686eafeb1f44702738c8b0f24f2567c36da6d"),
 				SkipWorktree: true,
 			},
 			{
-				Name:         filepath.Join("bar", "biz", "bat"),
+				Name:         path.Join("bar", "biz", "bat"),
 				Hash:         plumbing.NewHash("8ab686eafeb1f44702738c8b0f24f2567c36da6d"),
 				SkipWorktree: false,
 			},
@@ -84,16 +84,21 @@ func (s *NoderSuite) TestDiffSkipIssue1455() {
 
 	ch, err := merkletrie.DiffTree(NewRootNode(indexB), NewRootNode(indexA), isEquals)
 	s.NoError(err)
+	s.Len(ch, 1)
 	insertCount := 0
+	deleteCount := 0
 	for _, c := range ch {
 		a, err := c.Action()
 		s.NoError(err)
 		switch a {
 		case merkletrie.Insert:
 			insertCount++
+		case merkletrie.Delete:
+			deleteCount++
 		}
 	}
 	s.Equal(1, insertCount)
+	s.Equal(0, deleteCount)
 }
 
 func (s *NoderSuite) TestDiffDir() {
@@ -106,7 +111,7 @@ func (s *NoderSuite) TestDiffDir() {
 
 	indexB := &index.Index{
 		Entries: []*index.Entry{{
-			Name: filepath.Join("foo", "bar"),
+			Name: path.Join("foo", "bar"),
 			Hash: plumbing.NewHash("8ab686eafeb1f44702738c8b0f24f2567c36da6d"),
 		}},
 	}
