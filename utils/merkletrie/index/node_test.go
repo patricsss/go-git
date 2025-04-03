@@ -85,20 +85,9 @@ func (s *NoderSuite) TestDiffSkipIssue1455() {
 	ch, err := merkletrie.DiffTree(NewRootNode(indexB), NewRootNode(indexA), isEquals)
 	s.NoError(err)
 	s.Len(ch, 1)
-	insertCount := 0
-	deleteCount := 0
-	for _, c := range ch {
-		a, err := c.Action()
-		s.NoError(err)
-		switch a {
-		case merkletrie.Insert:
-			insertCount++
-		case merkletrie.Delete:
-			deleteCount++
-		}
-	}
-	s.Equal(1, insertCount)
-	s.Equal(0, deleteCount)
+	a, err := ch[0].Action()
+	s.NoError(err)
+	s.Equal(a, merkletrie.Insert)
 }
 
 func (s *NoderSuite) TestDiffDir() {
